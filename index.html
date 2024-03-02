@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Geometry Lite</title>
+	<meta name="description"
+		content="Geometry Dash Lite is a more limited, free version of Geometry Dash, an addictive rhythm-based platformer game. Control a square-shaped through various obstacles and challenges to show your skills.">
+	<meta name="title" content="Geometry Dash Lite">
+	<meta name="keywords" content="Geometry Dash Lite, Geometry Lite">
+	<meta name="news_keywords" content="Geometry Dash Lite, Geometry Lite">
+	<link rel="canonical" href="https://geometrydash-lite.com/">
+	<link rel="icon" href="https://geometrydash-lite.com/upload/imgs/options/geometry-dash-lite-favi1.png">=
+	<meta property="og:title" content="Geometry Lite" itemprop="headline">
+	<meta property="og:type" content="website">
+	<meta property="og:url" itemprop="url" content="https://geometrydash-lite.com/">
+	<meta property="og:image" itemprop="thumbnailUrl" content="/upload/imgs/options/geometry-dash-lite-favi1.png">
+	<meta property="og:description"
+		content="Geometry Lite is an addictive rhythm-based platformer game. Control a square-shaped through various obstacles and challenges to show your skills."
+		itemprop="description">
+	<meta property="og:site_name" content="Geometry Lite">
+	<link rel="apple-touch-icon" href="https://geometrydash-lite.com/upload/imgs/options/geometry-dash-lite-favi1.png">=
+	<meta name="twitter:title" content="Geometry Lite">
+	<meta name="twitter:url" content="https://geometrydash-lite.com/">
+	<meta name="twitter:image" content="/upload/imgs/options/geometry-dash-lite-favi1.png">
+	<meta name="twitter:description"
+		content="Geometry Lite is an addictive rhythm-based platformer game. Control a square-shaped through various obstacles and challenges to show your skills.">
+	<meta name="twitter:card" content="summary">
+	<link rel="stylesheet" href="./Build/reboot.css">
+	<link rel="stylesheet" href="./Build/body-style.css">
+	<link rel="stylesheet" href="./Build/home.css">
+	<script async="" src="./Build/js"></script>
+	<script>window.dataLayer = window.dataLayer || [];
+		function gtag() {
+			dataLayer.push(arguments);
+		}
+		gtag('js', new Date());
+
+		gtag('config', 'G-5MW7K0LY9R');</script>
+	<script async="" src="./Build/f.txt" crossorigin="anonymous"></script>
+	<meta name="google-adsense-account" content="ca-pub-1374750344299732">
+</head>
+
+<body>
+	<link rel="stylesheet" href="./Build/game.css">
+	<div id="gameContainer"
+		style="padding: 0px; margin: 0px; border: 0px; position: relative; background: rgb(35, 31, 32);"><canvas
+			id="#canvas" style="width: 100%; height: 100%; cursor: default;" width="1961" height="1316"></canvas></div>
+	<div id="loader" style="display: none;"><img class="logo" src="./Build/loading.png">
+		<div class="spinner" style="display: none;"></div>
+		<div class=" pos_progress">
+			<div class="progress" style="display: block;">
+				<div class="posfull"><img class="full" src="./Build/process_bar_back.png"
+						style="transform: scaleX(1);"></div>
+				<div class="posbox"><img class="box_process" src="./Build/process_bar_front.png"></div>
+			</div>
+		</div>
+		<script>function UnityCallPlayJs() {
+				console.log("untiy call play game");
+			}
+			function UnityCallAgainJs() {
+				console.log("unity call again");
+			}
+			function UnityCallReturnHomeJs() {
+				console.log("untiy call return home");
+			}
+			function UnityCallChooseLevelJs() {
+				console.log("untiy call choose level");
+			}
+			function UnityCallCloseLeaderboardJs() {
+				console.log("untiy call close leaderboard");
+			}
+			function UnityCallChooseCharacterJs() {
+				console.log("untiy call choose character");
+			}
+			function UnityCallChooseColorJs() {
+				console.log("untiy call choose color");
+			}
+			function UnityCallEndgameJs() {
+				console.log("untiy call end game");
+			}
+			function UnityCallContinueJs() {
+				console.log("untiy call continue");
+			}
+			function UnityCallChangeModeJs() {
+				console.log("untiy call change mode");
+			}
+			function UnityCallPauseGameJs() {
+				console.log("untiy call pause game");
+			}
+			function UnityCallChangeLevelJs() {
+				console.log("untiy call change level");
+			}
+			function UnityCallLevelUpJs() {
+				console.log("untiy call level up");
+			}</script>
+		<script src="./Build/UnityLoader.js.download"></script>
+		<script>UnityLoader.compatibilityCheck = function (e, t, r) { t(); };
+			var gameInstance = UnityLoader.instantiate("gameContainer", "Build/geometrydash-lite.com.json", { onProgress: UnityProgress });
+			function UnityProgress(gameInstance, progress) {
+				if (!gameInstance.Module) {
+					return;
+				}
+				const loader = document.querySelector("#loader");
+				if (!gameInstance.progress) {
+					const progress = document.querySelector("#loader .progress");
+					progress.style.display = "block";
+					gameInstance.progress = progress.querySelector(".full");
+					loader.querySelector(".spinner").style.display = "none";
+				}
+				gameInstance.progress.style.transform = `scaleX(${progress})`;
+				if (progress === 1 && !gameInstance.removeTimeout) {
+					gameInstance.removeTimeout = setTimeout(function () {
+						loader.style.display = "none";
+					}, 2000);
+				}
+			}
+
+			var theElement = document.getElementById("gameContainer");
+			theElement.addEventListener("mouseup", tapOrClick, false);
+			theElement.addEventListener("touchend", tapOrClick, false);
+
+			function tapOrClick(event) {
+				fullScreenAPI();
+				event.preventDefault();
+				return false;
+			}
+			function HiddenClass(instane_game) {
+				var widthPage = window.innerWidth;
+				var heightPage = window.innerHeight;
+				if (heightPage > widthPage) {
+					document.getElementById('orientation').style.display = "block";
+					document.getElementById("gameContainer").style.display = "none";
+					gameInstance.SendMessage('AudioMainController', 'JSCallUnity', 0);
+				}
+				else {
+					document.getElementById('orientation').style.display = "none";
+					document.getElementById("gameContainer").style.display = "block";
+					gameInstance.SendMessage('AudioMainController', 'JSCallUnity', 1);
+				}
+			}
+			function fullScreenAPI() {
+				var ua = navigator.userAgent.toLowerCase();
+				var isAndroid = ua.indexOf("android") > -1;
+				if (isAndroid) {
+					GoFullScreen(document.documentElement);
+				}
+			}
+			function GoFullScreen(element) {
+				if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+					if (element.requestFullscreen && document.fullscreenEnabled) {
+						element.requestFullscreen();
+					}
+					else if (element.mozRequestFullScreen) {
+						element.mozRequestFullScreen();
+					}
+					else if (element.webkitRequestFullscreen) {
+						element.webkitRequestFullscreen();
+					}
+					else if (element.msRequestFullscreen) {
+						element.msRequestFullscreen();
+					}
+				}
+			}</script>
+		<!--End Game-->
+		<script src="./Build/jquery-3.4.1.min.js.download"></script>
+		<script>function ToggleInfo() {
+				if ($('button.hide-main-panel').children('i')[0].textContent != 'Info') {
+					$("div.main-panel").css('width', '0px');
+					$("div.main-panel-ads").css('display', 'none');
+					$("div.main-panel-content").css('display', 'none');
+					$('button.hide-main-panel').children('i').html('Info');
+					console.log('Info');
+				} else {
+					$("div.main-panel").css('width', $("div.main-panel").css('max-width'));
+					$("div.main-panel-ads").css('display', 'block');
+					$("div.main-panel-content").css('display', 'block');
+					$('button.hide-main-panel').children('i').html('>>');
+					console.log('>>');
+				}
+			}
+			function ShowInfo() {
+				$("div.main-panel").css('width', $("div.main-panel").css('max-width'));
+				$("div.main-panel-ads").css('display', 'block');
+				$("div.main-panel-content").css('display', 'block');
+				$('button.hide-main-panel').children('i').html('>>');
+			}
+			function HideInfo() {
+				$("div.main-panel").css('width', '0px');
+				$("div.main-panel-ads").css('display', 'none');
+				$("div.main-panel-content").css('display', 'none');
+				$('button.hide-main-panel').children('i').html('Info');
+			}
+			$('button.hide-main-panel').click(function () {
+				console.log('a');
+				ToggleInfo();
+			});</script>
+
+
+	</div>
+	<script src="blob:https://geometrydash-lite.com/eff8f4cb-3452-4ebe-9a6e-a4ae50bfccc8"
+		id="a34fcf8bc7430c1979c4b770683745ac"></script>
+</body>
+
+</html>
