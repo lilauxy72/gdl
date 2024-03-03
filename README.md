@@ -1,2 +1,2 @@
 # gdl
-Geometry Dash Lite (remake for Unity)
+Geometry Dash Lite ripped straight off of geometrydashlite.io
