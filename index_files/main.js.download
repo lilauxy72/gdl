@@ -1,0 +1,650 @@
+// CREATED ON 9-20-16 :: N. ANTONOPULOS - DEV ::
+// FF-FEED AD
+//------------------------------------------
+//STEP 1 : CHECK TO MAKE SURE IA VARS ARE LOADED
+//STEP 2 : LOAD FEED
+//STEP 3A : IF FEED LOADS CHECK ITEMS AGAINST INDIVIDUAL PRODUCT IA VAR SETTINGS
+//STEP 3B : IF FEED DOES NOT LOAD RUN DEFUAL LOGIC
+//STEP 4A : LOAD IMAGES
+//STEP 5 : ADD LISTENERS
+//STEP 5 : RUN AD
+//------------------------------------------
+//// GLOBAL VARS //////
+var adW = 500;
+var adH = 250;
+
+var products_info = [];
+var delayTime = 2.8;
+var carousel_speed = 1;
+
+//booleans
+var isDefault = false;
+var feedReturned = false;
+var imagesLoaded = false;
+var block_click = false;
+var killAutoCar = false;
+var useSplash = false;
+var feedParams2 = new FTFeedParams();
+var f2SVG = null;
+var creative = {
+    //SET UP
+    init: function () {
+        myFT.addEventListener("instantads", function () {
+            creative.lg('instantads are loaded---------');
+            creative.createCTA();
+            //arr for default images to load
+
+            var ar = [{ ia: myFT.instantAds.logoimage, id: "bb_logo" }];
+            ar.push({ ia: myFT.instantAds.frame2_image, id: "greetings" });
+
+            if (myFT.instantAds.frame3_coremessage_image.indexOf('blank') == -1) {
+                ar.push({ ia: myFT.instantAds.frame3_coremessage_image, id: "vpe_hold" });
+            } else {
+                footer_hold.style.display = 'none';
+                legal_txt.style.color = 'black';
+            }
+
+            ar.push({ ia: myFT.instantAds.backgroundimage, id: "bg" });
+
+            var feedParams = new FTFeedParams();
+            feedParams.segmentId = myFT.instantAds.segmentId; //not sure why? if remove error occur
+            feedParams.feedEndPoint = myFT.instantAds.feedEndpoint;
+            feedParams2.feedEndPoint = myFT.instantAds.feedEndpoint;
+            feedParams.defaultFeedEndpoint = myFT.instantAds.defaultfeedendpoint;
+            feedParams2.defaultFeedEndpoint = myFT.instantAds.defaultfeedendpoint;
+            var ftFeed = new FTFeed(myFT, feedParams);
+            ftFeed.getFeed(creative.feedLoaded, creative.feedLoadError);
+
+            creative.loadImgs(ar, 'none');
+            TweenLite.delayedCall(.05, creative.checkLoads);
+            legal_txt.innerHTML = myFT.instantAds.legal_text;
+
+            myFT.applyClickTag(openingFrame, 1, myFT.instantAds.frame2_url);
+
+        });
+    },
+    //FEED LOAD/ERROR
+    feedLoaded: function (feedItems, feedUrl) {
+        creative.lg("Feed URL: " + feedUrl);
+        feedReturned = true;
+        if(feedParams2.defaultFeedEndpoint.substring(0,50)==feedUrl.substring(0,50)){
+            myFT.tracker("Defaultendpoint",null,"Defaultendpoint");
+
+        }
+        var max_number_of_products =  myFT.instantAds.NumberofProducts;
+
+        //check to make sure num of products matches feed length
+        var nop = (feedItems.length < parseInt(max_number_of_products)) ? feedItems.length : parseInt(max_number_of_products);
+
+        var prod_logo_imgURL = myFT.instantAds.product_brand_logo;
+        var imgA = [];
+        var logoA = [];
+        for (var i = 0; i < nop; i++) {
+            var up1 = i + 1;
+            //create slide
+            var prod = document.createElement('div');
+            prod.id = i;
+            prod.className = 'prod';
+            carousel.appendChild(prod);
+
+            //create slide inner divs
+            var prod_img_hold = document.createElement('div');
+            prod.appendChild(prod_img_hold);
+            var p_img = document.createElement('img');
+            prod_img_hold.className = 'prod_img_hold';
+            p_img.id = 'p_img_' + i;
+            prod_img_hold.appendChild(p_img);
+
+            if (myFT.instantAds.frame3_coremessage_image.indexOf('blank') != -1) {
+                carousel.style.height = '191px';
+                document.getElementById('' + i).style.height = '191px';
+                prod_img_hold.className = 'prod_img_hold_big';
+            } else {
+                prod_img_hold.className = 'prod_img_hold';
+            }
+
+            if (myFT.instantAds.product_brand_logo.indexOf('blank') != -1) {
+                prod_img_hold.style.marginTop = '0px';
+            }
+
+            //holds price and description
+            prod_info = document.createElement('div');
+            prod_info.className = 'prod_info';
+            prod.appendChild(prod_info);
+            prod_desc = document.createElement('div');
+            prod_desc.className = 'prod_desc';
+            prod_info.appendChild(prod_desc);
+            var prod_price = document.createElement('div');
+            prod_price.className = 'prod_price';
+
+            prod_info.appendChild(prod_price);
+            //BRAND LOGO
+            var prod_logo = document.createElement('img');
+            prod_logo.id = "p_logo_" + i;
+            prod_logo.className = 'prod_logo';
+
+            container.appendChild(prod_logo);
+            if (i === 0) {
+                prod.style.left = "0px";
+                prod_logo.style.opacity = "1";
+            }
+            //add the item image
+            //1 - check to see if override is needed
+            var imgURL = feedItems[i].powerfeeds_image;;
+
+            imgA.push({ ia: imgURL, id: p_img.id });
+
+
+            var ct_url = feedItems[i].url;
+            var variableUrl = myFT.instantAds.product_frame_url.trim();
+            if (variableUrl) {
+                ct_url = variableUrl;
+            }
+
+            name = feedItems[i].name;
+
+            sepName = creative.textSeperate(name);
+            prod_desc.innerHTML = sepName;
+
+            
+
+            if (prod_desc.clientHeight > 60) {
+                longDesc = true;
+            }
+
+
+
+            //price 1- check override
+            var fp = (feedItems[i].pricerestriction === null || "null") ? feedItems[i].saleprice : "SEE PRICE<br>IN CART";
+            var is_irc = (feedItems[i].pricerestriction === null || "null") ? false : true;
+
+
+            var price = fp;
+            price = price.toString();
+            if (is_irc) {
+                prod_price.innerHTML = "<span class='irc'>" + fp + "</span>";
+            } else {
+                //if no decimal add it plus 00
+                price = (price.indexOf('.') > -1) ? price : price + ".00";
+                prod_price.innerHTML = "<span class='dollarSign'>$</span>" + price.split('.')[0] + "<sup>" + price.split('.')[1] + "</sup>";
+            }
+            prod_logo.style.left = '-9px';
+            prod_logo.style.top = '-27px';
+            prod_logo.style.height = '207px';
+
+            if (myFT.instantAds.frame3_coremessage_image.indexOf('blank') != -1) {
+                prod_price.style.top = "114px";
+                prod_price.style.left = '42px';
+                prod_desc.className = 'prod_desc_big';
+
+                cta_bg.style.left = '179px';
+                cta_hold.style.top = '195px';
+
+                prod_logo.style.left = '0px';
+                prod_logo.style.top = '0px';
+                prod_logo.style.height = '250px';
+
+            }
+            var prod_logoURL = prod_logo_imgURL;
+
+            logoA.push({ id: prod_logo.id, ia: prod_logoURL });
+            products_info.push({ id: i, prod: prod, url: ct_url, p_logo: prod_logo });
+            // console.log(prod_logoURL)
+        }
+        var prod_btn = document.createElement('div');
+        prod_btn.className = 'prod_btn';
+        prod_btn.id = 'product_btn';
+        carousel.appendChild(prod_btn);
+
+        creative.loadImgs(logoA, 'none');
+        creative.loadImgs(imgA, creative.resizeImgs);
+
+    },
+
+    feedLoadError: function (errorMsg, feedUrl) {
+        console.log('Feed failed');
+        feedReturned = true;
+        var dimg = document.getElementById('default_img');
+
+        dimg.style.display = 'block';
+        dimg.onerror = function () {
+            dimg.src = "images/blank.gif";
+        };
+
+        bb_logo.style.display = 'none';//for clicktag
+
+        dimg.src = myFT.instantAds.default_fallback_image;
+        openingFrame.style.zIndex = "13";
+        myFT.applyButton(dimg, creative.onProduct_CT);
+
+        TweenLite.to(container, 0.5, { opacity: 1 });
+        myFT.tracker("Feedfail",null,"Feedfail");
+    },
+
+
+    goBanner: function () {
+
+        var useA = false;
+        if (products_info.length > 1) {
+            useA = true;
+            arrow_left.style.display = 'block';
+            arrow_right.style.display = 'block';
+        }
+
+        if (useA) {
+            TweenLite.to(arrow_left, .5, { opacity: 1, delay: 5.9 });
+            TweenLite.to(arrow_right, .5, { opacity: 1, delay: 5.9 });
+        }
+
+        var tl = new TimelineMax();
+
+        tl.set(container, { opacity: 1, delay: .5 });
+        // return;
+        tl.addLabel('showLogo');
+        var callDelay = 10;
+// return;
+        tl.to('#bb_logo', .5, { opacity: 0, delay: 1.5, onStart: () => {
+            if(f2SVG) {
+                svgGreetings.innerHTML = f2SVG;
+            }
+            svgGreetings.style.display = 'block';
+        } }, 'showLogo')
+            .set('#bb_logo', {scale: .6, x: -91, y: -99});
+        if (myFT.instantAds.frame2_image.indexOf('blank') == -1) {
+            tl.to(['#greetings', '#svgGreetings'], .5, { opacity: 1, delay: 1.7 }, 'showLogo');
+            tl.to(['#greetings', '#svgGreetings'], .5, { opacity: 0, delay: 4.5 }, 'showLogo');
+     
+
+            tl.addLabel('showCarousel')
+        } else {
+
+            callDelay = 7;
+            tl.addLabel('showCarousel')
+        }
+        // return;
+
+        tl.to([footer_hold, '#bb_logo'], 0.45, { opacity: 1, delay: .5, onComplete: () => {//opacity 1
+            // const shimmetTL = new TimelineMax();
+            
+            // shimmetTL.addLabel('start');
+//             let ballDelay = 0;
+//             extraDelay = .7;
+// //'translate3d(-10px, 0px, 1px)'
+//             ballAnimation(ball1, shimmetTL, ballDelay, 'translate3d(-20px, -10px, 1px)', 'translate3d(-10px, -20px, 1px)');
+//             ballDelay += extraDelay;
+//             ballAnimation(ball2, shimmetTL, ballDelay, 'translate3d(5px, 5px, 1px)', 'translate3d(10px, 20px, 1px)');
+//             ballDelay += extraDelay;
+//             ballAnimation(ball3, shimmetTL, ballDelay, 'translate3d(5px, 10px, 1px)', 'translate3d(5px, 20px, 1px)');
+//             ballDelay += extraDelay;
+//             ballAnimation(ball4, shimmetTL, ballDelay, 'translate3d(0px, 10px, 1px)', 'translate3d(0px, 20px, 1px)');
+//             ballDelay += extraDelay;
+//             ballAnimation(ball5, shimmetTL, ballDelay, 'translate3d(-10px, 0px, 1px)', 'translate3d(-20px, 0px, 1px)');
+//             ballDelay += extraDelay;
+//             ballAnimation(ball6, shimmetTL, ballDelay, 'translate3d(10px, 10px, 1px)', 'translate3d(20px, 20px, 1px)');
+//             ballDelay += extraDelay;
+//             ballAnimation(ball7, shimmetTL, ballDelay, 'translate3d(-25px, -5px, 1px)', 'translate3d(-20px, -10px, 1px)');
+//             ballDelay += extraDelay;
+//             ballAnimation(ball8, shimmetTL, ballDelay, 'translate3d(0px, 10px, 1px)', 'translate3d(0px, -10px, 1px)');
+//             ballDelay += extraDelay;
+//             ballAnimation(ball9, shimmetTL, ballDelay, 'translate3d(5px, 10px, 1px)', 'translate3d(0px, -10px, 1px)');
+//             ballDelay += extraDelay;
+//             ballAnimation(ball10, shimmetTL, ballDelay, 'translate3d(-32px, -7px, 1px)', 'translate3d(-20px, 0px, 1px)');
+
+
+        } }, 'showCarousel');
+        if (myFT.instantAds.frame3_coremessage_image.indexOf('blank') == -1) {
+            tl.to('#upperBorder', 0.45, { height: '125px', top: '54px', ease: Sine.easeOut, delay: .1 }, 'showCarousel');
+        } else {
+            tl.to('#upperBorder', 0.45, { height: '196px', top: '54px', ease: Sine.easeOut, delay: .1 }, 'showCarousel');
+        }
+        tl.from(cta_hold, 0.45, { top: "+=133", ease: Sine.easeOut, delay: .5 }, 'showCarousel');
+        tl.from("#legal_txt", 0.45, { opacity: 0, ease: Sine.easeOut, delay: .5 }, 'showCarousel');//new
+        tl.to(carousel, 0.45, { left: 15, ease: Sine.easeOut, delay: .5 }, 'showCarousel');
+
+        var p_logo = products_info[0].p_logo;
+        p_logo.style.opacity = "0";
+        tl.to(p_logo, .3, { opacity: 1, delay: 2.4 }, 'showCarousel');
+
+        if (products_info.length > 1) {
+            TweenLite.delayedCall(callDelay, creative.autoCarousel);
+        }
+
+        // function ballAnimation(ballDiv, tl, delay, middle, end) {
+        //     tl.set(ballDiv, {opacity: 0}, 'start');
+        //     tl.to(ballDiv, 3.5, {transform: middle, ease: Linear.easeNone, delay, opacity: 1}, 'start');
+        //     tl.to(ballDiv, 3.5, {transform: end, ease: Linear.easeNone, delay: delay + 3.6}, 'start')
+        //     tl.to(ballDiv, 3.5, {transform: 'translate3d(0px, 0px, 1px)', ease: Linear.easeNone, delay: delay + 7.2}, 'start')
+        // }
+    },
+    //CAROUSEL ACTIONS
+    autoCarousel: function () {
+        if (!killAutoCar) {
+            creative.onArrowClick('autoCarousel');
+
+        }
+    },
+    resetBlock: function () {
+        block_click = false;
+    },
+
+    onArrowClick: function (e) {
+
+        var event_name;
+        var newID;
+        //if called from autoCarousel set event name to arrow_right
+        if (e === 'autoCarousel') {
+            newID = products_info[1].id;
+            //   event_name = "arrow_right";
+        } else {
+            //	alert(e.target.id);
+            event_name = e.target.id;
+            //	alert(newID);
+            newID = e.target.id;
+            killAutoCar = true;
+        }
+        var elm;//element to slide out
+        var elm2;//element to slide in
+
+        var ls = adW + "px";//left slide number
+        var rs = -adW + "px";//right slide number
+        if (!block_click && newID != products_info[0].id) {
+            var p_logo_1 = products_info[0].p_logo;
+
+            block_click = true;
+            creative.lg("EVENT NAME IS :: ", event_name)
+            if (event_name == 'arrow_right') {
+                elm = products_info[0].prod;
+                TweenLite.to(elm, carousel_speed, { left: rs });
+                elm = products_info.shift();
+                products_info.push(elm);
+                elm2 = products_info[0].prod;
+                elm2.style.left = ls;
+                TweenLite.to(elm2, carousel_speed, { left: "0px", ease: "expo.out", onComplete: creative.resetBlock });
+            } else {
+                
+                elm = products_info[0].prod;
+                TweenLite.to(elm, carousel_speed, { left: ls });
+                elm2 = products_info.pop();
+                elm2.prod.style.left = rs;
+                TweenLite.to(elm2.prod, carousel_speed, { left: "0px", ease: "expo.out", onComplete: creative.resetBlock });
+                products_info.unshift(elm2);
+
+            }
+            var p_logo_2 = products_info[0].p_logo;
+            TweenLite.to(p_logo_1, .1, { opacity: 0 });
+            TweenLite.to(p_logo_2, .3, { opacity: 1, delay: carousel_speed });
+            if (!killAutoCar && products_info[0].id != "0") {
+                TweenLite.delayedCall(delayTime, creative.autoCarousel);
+            }
+
+        }
+    },
+
+    //LOAD IMAGES
+    loadImgs: function (allImgs, returnFunc) {
+        var tmpCnt = 0;
+        for (var i = 0; i < allImgs.length; i++) {
+            var elm = document.getElementById(allImgs[i].id);
+            elm.onerror = function (e) {
+                creative.lg('IMAGE LOAD ERROR :: ', this.id);
+                if (returnFunc !== 'none') {
+                    e.target.src = "3x2_prod_backup_newBrand.png";
+                } else {
+                    e.target.src = "images/blank.gif";
+                }
+            };
+            elm.onload = function (e) {
+                tmpCnt++;
+                if (returnFunc !== 'none' && tmpCnt === allImgs.length) {
+                    creative.lg('FEED/PRODUCT IMAGES HAVE LOADED');
+                    returnFunc(allImgs);
+                }
+            };
+            elm.src = allImgs[i].ia;
+        }
+    },
+    //RESIZE IMAGES
+    resizeImgs: function (a) {
+        for (var i = 0; i < a.length; i++) {
+            var elm = document.getElementById(a[i].id);
+            if (elm.clientWidth >= elm.clientHeight) {
+                // elm.style.width = "100px";
+            } else {
+
+                // elm.style.height = "98px";
+            }
+            //   if(a[i])
+        }
+        imagesLoaded = true;
+    },
+    //CLICK TAGS
+    onProduct_CT: function (e) {
+        var url = products_info[0].url;
+        var id = products_info[0].id + 1;
+        myFT.clickTag(id, url);
+    },
+
+    //ADD LISTENERS & HELPER FUNCTIONS
+    addListeners: function () {
+
+        container.appendChild(splash_screen);
+        container.appendChild(border);
+        myFT.applyButton(cta_bg, creative.onProduct_CT);
+
+        myFT.applyButton(product_btn, creative.onProduct_CT);
+        myFT.applyButton(container, creative.onProduct_CT);
+
+        myFT.applyButton(arrow_left, creative.onArrowClick);
+        container.appendChild(arrow_left);
+        myFT.applyButton(arrow_right, creative.onArrowClick);
+        container.appendChild(arrow_right);
+        //
+        creative.goBanner();
+    },
+    createCTA: function () {
+        cta_copy.innerHTML = myFT.instantAds.cta_text;
+
+        var w = cta_copy.clientWidth + 23;
+        var offset = -.5;
+        if (checkPlatform()[1] == 'firefox') {
+            offset = -2;
+        }
+
+        cta_copy.style.top = ((cta_bg.clientHeight - cta_copy.clientHeight) / 2 + offset) + "px";
+        cta_bg.style.width = w + "px";
+        cta_copy.style.width = w + "px";
+
+    },
+    checkLoads: function () {
+
+        if (feedReturned && imagesLoaded) {
+            if(myFT.instantAds.frame2_image.includes('.svg')) {
+
+                fetch(myFT.instantAds.frame2_image).then(response => {
+                    return response.blob();
+                }).then(blob => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+
+                    reader.onloadend = () => {
+                        const rs = reader.result;
+                        const svgText = atob(rs.split(",")[1].split("\n").join(""));
+                        svgGreetings.innerHTML = svgText;
+                    }
+                })
+                greetings.style.display = 'none';
+                creative.addListeners();
+            } else {
+                creative.addListeners();
+            }
+
+            
+        } else {
+            TweenLite.delayedCall(.05, creative.checkLoads);
+        }
+    },
+
+    checkMaxChar: function (str) {
+
+        var longDesc = false;
+        var cutNum = 35;
+        if (prod_desc.clientHeight > 53) {
+            longDesc = true;
+        }
+
+        if (str.length > cutNum) {
+            var rest = str.slice(0, cutNum - 3);
+
+            if (rest.charAt(cutNum - 4) == ' ') {
+                rest = rest.slice(0, cutNum - 3);
+                rest = rest + '...';
+            } else {
+                rest = rest + '...';
+            }
+            return { str: rest, longDesc: longDesc };
+        } else {
+            return { str: str, longDesc: longDesc };
+        }
+    },
+
+
+    checkMaxCharResize: function (str) {
+
+        var cutNum2 = 35;
+
+        if (str.length > cutNum2) {
+            var rest = str.slice(0, cutNum2);
+
+            if (rest.charAt(cutNum2 - 4) == ' ') {
+                rest = rest.slice(0, cutNum2 - 3);
+                rest = rest + '...';
+            } else {
+                rest = rest + '...';
+            }
+            return rest;
+        } else {
+            return str;
+        }
+    },
+
+    textSeperate: function (val) {
+        var separators = ['|', '/'];
+        var result = "";
+        flag = true;
+        for (var i = 0; i < val.length; i++) {
+            flag = true;
+            for (var j = 0; j < separators.length; j++) {
+                if (val[i] == separators[j]) {
+                    result += " " + val[i] + " ";
+                    flag = false;
+                }
+            }
+            if (flag) {
+                result += val[i];
+            }
+        }
+        return (result);
+    },
+
+    fontResize: function (el, longDesc) {
+        CSSFontSize = window.getComputedStyle(el, null).getPropertyValue("font-size");
+        CSSLineHeight = window.getComputedStyle(el, null).getPropertyValue("line-height");
+        // var currFontSize = (parseInt(CSSFontSize, 10));
+        if (longDesc) {
+            el.style.fontSize = (parseInt(CSSFontSize, 10) - 2) + "px";
+            el.style.lineHeight = (parseInt(CSSLineHeight, 10) - 1) + "px";
+
+            chkNameResize = creative.checkMaxCharResize(name);
+            el.innerHTML = chkNameResize;
+        }
+    },
+
+    lg: function (msg) {
+        const url = document.URL;
+        (url.includes("127.0.0.1") || url.includes("localhost") || url.includes("https://creativepreview.flashtalking.net")) 
+        && console.log(msg);
+    }
+};
+
+function trace(msg) {
+    const url = document.URL;
+    (url.includes("127.0.0.1") || url.includes("localhost") || url.includes("https://creativepreview.flashtalking.net")) 
+    && console.log(msg);
+}
+
+creative.init();
+
+function checkPlatform() {
+
+
+    try {
+
+        var a = new Array();
+
+        if (navigator.platform.toLowerCase().indexOf("mac") > -1) {
+
+            a[0] = "macOS";
+
+        } else if (navigator.platform.toLowerCase().indexOf("win") > -1) {
+
+            a[0] = "windows";
+
+        } else {
+
+            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+
+                a[0] = "iOS";
+
+            } else if (navigator.userAgent.match(/Opera Mini/i)) {
+
+                a[0] = "opera";
+
+            } else if (navigator.userAgent.match(/Android/i)) {
+
+                a[0] = "android";
+
+            } else if (navigator.userAgent.match(/BlackBerry/i)) {
+
+                a[0] = "BlackBerry";
+
+            } else if (navigator.userAgent.match(/IEMobile/i) || navigator.userAgent.match(/WPDesktop/i)) {
+
+                a[0] = "WindowsPhone";
+
+            }
+
+        }
+
+        var MSIE = window.navigator.userAgent.indexOf("MSIE ");
+
+        var Edge = window.navigator.userAgent.indexOf("Edge/");
+
+        var Trdt = window.navigator.userAgent.indexOf("Trident/");
+
+        if (navigator.userAgent.toLowerCase().indexOf("chrome") > -1) {
+
+            a[1] = "chrome";
+
+        } else if (navigator.userAgent.toLowerCase().indexOf("firefox") > -1) {
+
+            a[1] = "firefox";
+
+        } else if (navigator.vendor && navigator.vendor.toLowerCase().indexOf("apple") > -1) {
+
+            a[1] = "safari";
+
+        } else if (MSIE > 0 || Edge > 0 || Trdt > 0) {
+
+            a[1] = "IE";
+
+        }
+
+        return a;
+
+    } catch (error) {
+
+        console.error("Error on checkPlatform(): " + error.message);
+
+    }
+
+}
